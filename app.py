@@ -1,7 +1,24 @@
 from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy #orm para o banco
 
+print ("servidor iniciado")
 app = Flask(__name__)
-tasks = []
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False #otimização
+
+db = SQLAlchemy(app)
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True) #chave primaria
+    title = db.Column(db.String(100), nullable=False) #obrigatorio :v
+    done = db.Column(db.Boolean, default=False) #status da tarefa
+
+    def to_dict(self):
+        return {"id": self.id, "title": self.title, "done": self.done}
+    
+with app.app_context():
+    db.create_all()
 
 @app.route("/")
 def home():
@@ -9,19 +26,19 @@ def home():
 
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
-    return jsonify(tasks)
+    tasks = Task.query.all() #busca as tarefas no banco
+    return jsonify([task.to_dict() for task in tasks])
 
 @app.route("/tasks", methods=["POST"])
 def create_task():
     data = request.get_json()
+    if not data or "title" not in data:
+        return jsonify({"error": "Campo 'title' é obrigatorio"}), 400
 
-    task = {
-        "id": len(tasks) + 1,
-        "title": data["title"],
-        "done": False
-    }
-    tasks.append(task)
-    return jsonify(task), 201
+    task = Task(title=data["title"])
+    db.session.add(task) #adiciona ao banco
+    db.session.commit() #salva
+    return jsonify(task.to_dict()), 201
 
 if __name__ == "__main__":
     app.run(debug=True)
