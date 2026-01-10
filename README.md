@@ -54,7 +54,7 @@ DELETE http://localhost:5000/tasks/1
 
 ## Como rodar o projeto?
 ## 1. Clone o repositorio:
-git clone <URL_DO_SEU_REPOSITORIO>
+git clone <https://github.com/LukaoModesto/task_manager_api>
 cd TASK_MANAGER_API
 
 ## 2. Crie e ative o ambiente virtual:
