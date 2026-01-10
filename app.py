@@ -40,5 +40,37 @@ def create_task():
     db.session.commit() #salva
     return jsonify(task.to_dict()), 201
 
+
+@app.route("/tasks/<int:task_id>", methods=["PUT"])
+def update_task(task_id):
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "JSON obrigatorio"}), 400
+    
+    #Busca a tarefa pelo id
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify({"error": "Tarefa nao encontrada"}), 404
+    
+    # Atualiza os campos se vierem no JSON
+
+    if "title" in data:
+        task.title = data["title"]
+    if "done" in data:
+        task.done = data["done"]
+
+    db.session.commit() #salva alterações
+    return jsonify(task.to_dict()), 200
+
+@app.route("/tasks/<int:task_id>", methods=["DELETE"])
+def delete_task(task_id):
+    task = Task.query.get(task_id)
+    if not task:
+        return jsonify({"error": "Tarefa não encontrada"}), 404
+    
+    db.session.delete(task) #remove do banco
+    db.session.commit()
+    return jsonify({"message": "Tarefa deletada"}), 200
+
 if __name__ == "__main__":
     app.run(debug=True)
